@@ -23,13 +23,17 @@ const DataTableCrypto = (props:any) => {
 
     //const [loading1, setLoading1] = useState(true);
     
+    // useEffect(() => {
+    //     // console.log(props.data);
+    //     // console.log("data datatable",crypto);
+    //      setCrypto(props.data);
+    //     initFilters1();
+    // }); // eslint-disable-line react-hooks/exhaustive-deps
+    //setCrypto(props.data);
     useEffect(() => {
-        console.log(props.data);
-        console.log("data datatable",crypto);
         setCrypto(props.data);
-        initFilters1();
-    }, [crypto]); // eslint-disable-line react-hooks/exhaustive-deps
-
+        console.log(props.data);
+    }); //
 
     const formatDate = (value:any) => {
         return value.toLocaleDateString('en-US', {
