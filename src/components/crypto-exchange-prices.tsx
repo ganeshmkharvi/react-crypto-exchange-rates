@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import socketIOClient from "socket.io-client";
+import axios from "axios";
 
 import DataTableCrypto from "./datatable-crypto";
 
@@ -11,11 +12,30 @@ const ENDPOINT = "http://localhost:3001";
 const CryptoExchangePrices = () => {
 
     const [response, setResponse] = useState<any[]>([]);
+    const [datasource,setDatasource] = useState<any[]>([]);
     //const [da, setda] = useState('');
     const [count, setCount] = useState(0);
 
+    const fetchData = () => {
+        fetch(ENDPOINT + "/api/detail")
+            .then((response) => response.json())
+            .then((data) => console.log("data from API : ", data));
+    }
+
+
+
+
+
     // @ts-ignore
     useEffect(() => {
+
+        /*fetch(
+            ENDPOINT + "/api/detail")
+            .then((res) => res.json())
+            .then((data) => console.log("data from API : ", data));*/
+
+        fetchData();
+
         const socket = socketIOClient(ENDPOINT);
 
             const listener = (data:any) => {
@@ -41,17 +61,23 @@ const CryptoExchangePrices = () => {
 
             socket.on("subscribed-crypto-prices", listener);
 
+            /*let getAPI =  () =>  axios.get(ENDPOINT + "/api/detail");
+            const tradeResult = getAPI().then(result =>  result.data);
+            //let tradeData = tradeResult.data;
+            console.log("data from API : ", tradeResult);*/
+
+
          return () => {
              socket.off("subscribed-crypto-prices", listener);
              socket.disconnect();
          }
 
-    });
+    },[response]);
 
     return (
         <>
             <div className="container">
-                <h1>{count} {response.length}</h1> 
+                <h1>{count} {response?.length}</h1>
                 <DataTableCrypto data={response}></DataTableCrypto>
                 <h1>{count}</h1>
             </div>
