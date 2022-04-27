@@ -7,5 +7,6 @@ export const apiGetEndpoint = "/detail";
 
 export const exchangeMessageSubmit = "Exchange Submitted";
 export const chooseCurrency = "Choose a currency";
+export const messageFillAllFields = "Please fill all fields before submitting exchange";
 
 
