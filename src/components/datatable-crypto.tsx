@@ -25,9 +25,9 @@ const DataTableCrypto = () => {
     const toast = useRef(null);
 
     /// State values used by dataTable
-    const [crypto, setCrypto] = useState<any[]>([]);
-    const [tableData, setTableData] = useState<any[]>([]); // filtered crypto list
-    const [response, setResponse] = useState<any[]>([]);
+    const [crypto, setCrypto] = useState<any[]>([]); // trade exchange data received from server
+    const [tableData, setTableData] = useState<any[]>([]); // filtered trade exchange list
+    const [response, setResponse] = useState<any[]>([]); // currency (crypto and regular) data (prices, image URLs etc)
     const [displayModal, setDisplayModal] = useState(false);
     const [selectedTrade, setSelectedTrade] = useState<any>(null); //trade data selected on dataTable (for mobile) to be shown on exchange modal
 
@@ -54,6 +54,7 @@ const DataTableCrypto = () => {
 
     }
 
+    /// Get exchange data from db
     const getApiData = () => {
 
         fetch(APIURL+Constants.apiGetEndpoint, {
@@ -74,6 +75,7 @@ const DataTableCrypto = () => {
             })
     }
 
+    /// Submit exchange data
     const submitTradeData = () => {
 
         if(cryptoAmount === 0 || targetAmount === 0 || !selectedCrypto || !selectedTarget){
@@ -427,15 +429,10 @@ const DataTableCrypto = () => {
         return <span className={classCss}> {rowData.conversionType} </span>
     }
 
-
-    const onModalHide = () => {
-        setDisplayModal(false);
-    }
-
     const renderModalFooter = () => {
         return (
             <div className="">
-                <Button label="Close" onClick={() => onModalHide()}
+                <Button label="Close" onClick={() => setDisplayModal(false)}
                         className="p-button p-button-success w-100"/>
             </div>
         );
