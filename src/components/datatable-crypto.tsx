@@ -15,10 +15,14 @@ import '../Datatable.css';
 import socketIOClient from "socket.io-client";
 import {InputNumber} from "primereact/inputnumber";
 
+import * as Constants from '../constants/constants';
 
-const ENDPOINT = "http://localhost:3001";
+
+const ENDPOINT = Constants.socketURL; //"http://localhost:3001";
+const APIURL = Constants.apiURL+Constants.apiURLPrefix;
 
 const socket = socketIOClient(ENDPOINT);
+
 
 const DataTableCrypto = () => {
 
@@ -41,8 +45,25 @@ const DataTableCrypto = () => {
 
     const [selectedTrade, setSelectedTrade] = useState<any>(null);
 
+    const listener = (data: any) => {
+        console.log("data", data);
+        console.log("test dd");
+        console.log("data read at " + new Date().toLocaleDateString('en-US', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        }));
+        setResponse(data);
+
+    }
+
+
+
     const getApiData = () => {
-        fetch("http://localhost:3001/api/detail", {
+        fetch(APIURL+Constants.apiGetEndpoint, {
             method: 'GET',
             headers: {
                 accept: 'application/json',
@@ -57,7 +78,7 @@ const DataTableCrypto = () => {
             .catch(error => console.log("error in fetch ", error))
     }
     const submitTradeData = () => {
-        fetch(ENDPOINT+"/api/detail", {
+        fetch(APIURL+Constants.apiPostEndpoint, {
 
             // Adding method type
             method: "POST",
@@ -90,7 +111,7 @@ const DataTableCrypto = () => {
                     }
                 else{
                     // @ts-ignore
-                    toast.current.show({severity:'success', summary: 'Success Message', detail:'Exchange Submitted', life: 3000});
+                    toast.current.show({severity:'success', summary: 'Success Message', detail:Constants.exchangeMessageSubmit, life: 3000});
                 }
                 getApiData();
             });
@@ -99,25 +120,12 @@ const DataTableCrypto = () => {
 
     useEffect(() => {
 
-        const listener = (data: any) => {
-            console.log("data", data);
-            console.log("test dd");
-            console.log("data read at " + new Date().toLocaleDateString('en-US', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit"
-            }));
-            setResponse(data);
+        socket.on(Constants.socketEventName, listener);
 
-        }
 
-        socket.on("subscribed-crypto-prices", listener);
 
         return () => {
-            socket.off("subscribed-crypto-prices", listener)
+            socket.off(Constants.socketEventName, listener)
         };
 
 
@@ -135,6 +143,9 @@ const DataTableCrypto = () => {
     useEffect(()=>{
         calculateReversePrice();
     },[targetAmount]);
+
+
+
     const onTypeChange = (e: { value: any }) => {
         setType(e.value);
     }
@@ -227,7 +238,7 @@ const DataTableCrypto = () => {
 
         return (
             <span>
-                {"Choose a currency"}
+                {Constants.chooseCurrency}
             </span>
         );
     }
@@ -347,7 +358,7 @@ const DataTableCrypto = () => {
                     </div>
                     <div className="field col-12 col-md-2">
                         <label htmlFor="toDate">Amount</label>
-                        <InputNumber value={cryptoAmount} onValueChange={(e) => {setCryptoAmount(e.value)}} mode="decimal"
+                        <InputNumber value={cryptoAmount} onValueChange={(e) => {setCryptoAmount(e.value);}} mode="decimal"
                                      minFractionDigits={2} maxFractionDigits={selectedCrypto.fractions}/>
                     </div>
 
@@ -367,11 +378,11 @@ const DataTableCrypto = () => {
                     </div>
                     <div className="field col-12 col-md-2">
                         <label htmlFor="toDate">Amount</label>
-                        <InputNumber value={targetAmount} onValueChange={(e) =>{ setTargetAmount(e.value); calculateReversePrice();}} mode="decimal"
+                        <InputNumber value={targetAmount} onValueChange={(e) =>{ setTargetAmount(e.value); }} mode="decimal"
                                      minFractionDigits={2} maxFractionDigits={selectedTarget.fractions}/>
                     </div>
 
-                    <div className="col-12 col-md-2 flex d-flex align-items-end mb-1">
+                    <div className="col-12 col-md-2 flex d-flex align-items-end mb-1 mt-2">
 
 
                             <Button label="Submit" className="p-button p-button-success w-100" aria-label="Filter"
@@ -388,13 +399,25 @@ const DataTableCrypto = () => {
     const dateBodyTemplate = (rowData: any) => {
         return formatDate(rowData.transactionDate);
     }
+
+    const typeBodyTemplate = (rowData: any) => {
+        let classCss = "";
+        if(rowData.conversionType === "Live Price")
+            classCss = "text-success font-weight-bold"
+        else
+            classCss = "text-primary font-weight-bold"
+
+        return <span className={classCss}> {rowData.conversionType} </span>
+    }
+
     const onHide = () => {
         setDisplayModal(false);
     }
+
     const renderModalFooter = () => {
         return (
-            <div>
-                <Button label="Close" icon="pi pi-times" onClick={() => onHide()}
+            <div className="">
+                <Button label="Close" onClick={() => onHide()}
                         className="p-button p-button-success w-100"/>
             </div>
         );
@@ -449,7 +472,7 @@ const DataTableCrypto = () => {
                     </tr>
                     <tr>
                         <td>Total Amount</td>
-                        <td></td>
+                        <td>{rowData.amount2}</td>
                     </tr>
                     </tbody>
                 </table>
@@ -462,13 +485,16 @@ const DataTableCrypto = () => {
     return (
         <>
             <Toast ref={toast} />
-            {form}
+            { // trade data submit form
+                 form
+             }
             <hr/>
             <div className="mt-5">
                 <h4>History</h4>
             </div>
             <div className="mb-3 mt-1">
-                {header1}
+                { //filter form
+                    header1}
             </div>
             <hr/>
             <div className="datatable-filter-demo d-none d-md-block mt-4">
@@ -481,13 +507,22 @@ const DataTableCrypto = () => {
                                            rows={10}
                                            dataKey="id" responsiveLayout="scroll" emptyMessage="No data found.">
 
-                                    <Column field="conversionType" header="Type" style={{minWidth: '12rem'}}/>
 
-
-                                    <Column header="Date" filterField="transactionDate" dataType="date"
-                                            field="transactionDate" style={{minWidth: '10rem'}}
+                                    <Column header="Date Time" sortable sortField="transactionDate"  dataType="date"
+                                            field="transactionDate" style={{minWidth: '5rem'}}
                                             body={dateBodyTemplate}/>
 
+                                    <Column field="currencyFrom" header="Currency From" style={{minWidth: '6rem'}}/>
+
+                                    <Column field="amount1" header="Amount 1" style={{minWidth: '6rem'}}/>
+
+                                    <Column field="currency2" header="Currency To" style={{minWidth: '6rem'}}/>
+
+                                    <Column field="amount2" header="Amount 2" style={{minWidth: '6rem'}}/>
+
+                                    <Column header="Type"
+                                            field="conversionType" style={{minWidth: '5rem'}}
+                                            body={typeBodyTemplate}/>
                                 </DataTable>
                             </>
                     }

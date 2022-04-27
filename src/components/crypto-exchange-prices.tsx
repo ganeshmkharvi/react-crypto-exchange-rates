@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import socketIOClient from "socket.io-client";
-import axios from "axios";
+import React from "react";
+
 
 import DataTableCrypto from "./datatable-crypto";
 
@@ -19,9 +18,5 @@ const CryptoExchangePrices = () => {
         </>
     );
 };
-
-// CryptoExchangePrices.propTypes = {
-//     name: React.PropTypes.string.isRequired
-// }
 
 export default CryptoExchangePrices
